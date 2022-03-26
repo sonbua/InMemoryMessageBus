@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <LangVersion>10</LangVersion>
+    <IsPackable>false</IsPackable>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+  </PropertyGroup>
+
+  <!--  Variables  -->
+  <PropertyGroup>
+    <IsSpecProject Condition="$(MSBuildProjectName.EndsWith('Specs'))">true</IsSpecProject>
+    <IsTestProject Condition="$(MSBuildProjectName.EndsWith('Tests')) OR '$(IsSpecProject)' == 'true' ">true</IsTestProject>
+  </PropertyGroup>
+
+  <!--  Source projects  -->
+  <Import Project="$(MSBuildThisFileDirectory)src.props" Condition=" '$(IsTestProject)' != 'true' " />
+
+  <!--  Test projects  -->
+  <Import Project="$(MSBuildThisFileDirectory)test.props" Condition=" '$(IsTestProject)' == 'true' " />
+
+  <!-- Output path -->
+  <PropertyGroup Label="Prefer RAM disk as output path if available" Condition="Exists('R:\dotnet-build')">
+    <SolutionBuildDir>R:\dotnet-build\$(SolutionName)</SolutionBuildDir>
+    <ProjectBuildDir>$(SolutionBuildDir)\$(MSBuildProjectName)</ProjectBuildDir>
+
+    <BaseOutputPath>$(ProjectBuildDir)\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(ProjectBuildDir)\obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>

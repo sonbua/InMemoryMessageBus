@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "global", "global", "{B7163D83-7A0C-40A5-8584-2402DD1EEB0B}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE.txt = LICENSE.txt
+		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		global.json = global.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{7214F191-A5F7-447F-BFA1-9571DAF3136B}"
+	ProjectSection(SolutionItems) = preProject
+		build\all.props = build\all.props
+		build\dependencies.props = build\dependencies.props
+		build\src.props = build\src.props
+		build\test.props = build\test.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{47B6AEE6-32AC-4CF6-891B-C9D47A95F391}"
+	ProjectSection(SolutionItems) = preProject
+		src\.editorconfig = src\.editorconfig
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4136F6D6-D074-4204-A219-835476AA6A86}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageBus", "src\MessageBus\MessageBus.csproj", "{8473AC3E-77E0-4775-9DA1-C0A67F9DD96E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageBus.Specs", "test\MessageBus.Specs\MessageBus.Specs.csproj", "{817BD937-901D-43A1-9308-4A27B30848EE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8473AC3E-77E0-4775-9DA1-C0A67F9DD96E} = {47B6AEE6-32AC-4CF6-891B-C9D47A95F391}
+		{817BD937-901D-43A1-9308-4A27B30848EE} = {4136F6D6-D074-4204-A219-835476AA6A86}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8473AC3E-77E0-4775-9DA1-C0A67F9DD96E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8473AC3E-77E0-4775-9DA1-C0A67F9DD96E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8473AC3E-77E0-4775-9DA1-C0A67F9DD96E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8473AC3E-77E0-4775-9DA1-C0A67F9DD96E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{817BD937-901D-43A1-9308-4A27B30848EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{817BD937-901D-43A1-9308-4A27B30848EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{817BD937-901D-43A1-9308-4A27B30848EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{817BD937-901D-43A1-9308-4A27B30848EE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
