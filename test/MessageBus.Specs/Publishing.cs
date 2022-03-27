@@ -10,6 +10,7 @@ class publishing_validation_context : bus_context
 {
 }
 
+[Tags(tag.validation)]
 class given_null_message : publishing_validation_context
 {
     Because of = () => publishing = () => bus.Publish(null);
