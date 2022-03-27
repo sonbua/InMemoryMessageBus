@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,12 +10,12 @@ namespace MessageBus;
 public class Bus
 {
     private readonly Queue<object> _pendingMessages;
-    private readonly Dictionary<string, Subscriber> _subscribers;
+    private readonly ConcurrentDictionary<string, Subscriber> _subscribers;
 
     public Bus()
     {
         _pendingMessages = new Queue<object>();
-        _subscribers = new Dictionary<string, Subscriber>();
+        _subscribers = new ConcurrentDictionary<string, Subscriber>();
     }
 
     public long PendingCount => _pendingMessages.Count;
@@ -38,17 +39,30 @@ public class Bus
             throw new ArgumentNullException(nameof(subscriber));
         }
 
-        if (string.IsNullOrEmpty(subscriber.Name))
+        if (string.IsNullOrWhiteSpace(subscriber.Name))
         {
-            throw new ArgumentException("Subscriber name should not be null or empty.", nameof(subscriber));
+            throw new ArgumentException("Subscriber name should not be empty or whitespace(s).", nameof(subscriber));
         }
 
-        _subscribers.Add(subscriber.Name, subscriber);
+        _subscribers.TryAdd(subscriber.Name, subscriber);
 
         StartConsuming();
     }
 
-    public void Unsubscribe(string subscriberName) => _subscribers.Remove(subscriberName);
+    public void Unsubscribe(string subscriberName)
+    {
+        if (subscriberName is null)
+        {
+            throw new ArgumentNullException(nameof(subscriberName));
+        }
+
+        if (string.IsNullOrWhiteSpace(subscriberName))
+        {
+            throw new ArgumentException("Subscriber name should not be empty or whitespace(s).", nameof(subscriberName));
+        }
+
+        _subscribers.TryRemove(subscriberName, out _);
+    }
 
     private void StartConsuming()
     {
