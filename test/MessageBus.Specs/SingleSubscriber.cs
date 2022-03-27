@@ -7,7 +7,7 @@ namespace MessageBus.Specs;
 [Subject("Single Subscriber")]
 class single_subscriber_context : bus_context
 {
-    Establish context = () => bus.Subscribe("a subscriber", _ => { });
+    Establish context = () => bus.Subscribe(new Subscriber("a subscriber", _ => { }));
 }
 
 class when_publishing_a_message : single_subscriber_context

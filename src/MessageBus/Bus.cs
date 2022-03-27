@@ -9,12 +9,12 @@ namespace MessageBus;
 public class Bus
 {
     private readonly Queue<object> _pendingMessages;
-    private readonly Dictionary<string, Action<object>> _subscribers;
+    private readonly Dictionary<string, Subscriber> _subscribers;
 
     public Bus()
     {
         _pendingMessages = new Queue<object>();
-        _subscribers = new Dictionary<string, Action<object>>();
+        _subscribers = new Dictionary<string, Subscriber>();
     }
 
     public long PendingCount => _pendingMessages.Count;
@@ -31,14 +31,19 @@ public class Bus
         StartConsuming();
     }
 
-    public void Subscribe(string subscriberName, Action<object> action)
+    public void Subscribe(Subscriber subscriber)
     {
-        if (string.IsNullOrEmpty(subscriberName))
+        if (subscriber is null)
         {
-            throw new ArgumentException("", nameof(subscriberName));
+            throw new ArgumentNullException(nameof(subscriber));
         }
 
-        _subscribers.Add(subscriberName, action);
+        if (string.IsNullOrEmpty(subscriber.Name))
+        {
+            throw new ArgumentException("Subscriber name should not be null or empty.", nameof(subscriber));
+        }
+
+        _subscribers.Add(subscriber.Name, subscriber);
 
         StartConsuming();
     }
@@ -53,7 +58,7 @@ public class Bus
 
             foreach (var subscriber in _subscribers)
             {
-                subscriber.Value.Invoke(message);
+                subscriber.Value.MessageHandler.Invoke(message);
             }
         }
     }

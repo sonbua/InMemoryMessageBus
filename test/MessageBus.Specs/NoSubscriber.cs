@@ -22,7 +22,7 @@ class no_subscriber_context : bus_context
             bus.PendingCount.Should().Be(1);
         };
 
-        Because of = () => bus.Subscribe("subscriber name", _ => { });
+        Because of = () => bus.Subscribe(new Subscriber("a subscriber", _ => { }));
 
         It the_message_should_be_consumed = () => bus.PendingCount.Should().Be(0);
     }
