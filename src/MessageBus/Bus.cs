@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 
 [assembly: CLSCompliant(true)]
 
@@ -9,12 +7,12 @@ namespace MessageBus;
 
 public class Bus
 {
-    private readonly Queue<object> _pendingMessages;
+    private readonly ConcurrentQueue<object> _pendingMessages;
     private readonly ConcurrentDictionary<string, Subscriber> _subscribers;
 
     public Bus()
     {
-        _pendingMessages = new Queue<object>();
+        _pendingMessages = new ConcurrentQueue<object>();
         _subscribers = new ConcurrentDictionary<string, Subscriber>();
     }
 
@@ -68,10 +66,13 @@ public class Bus
 
     private void StartConsuming()
     {
-        while (_pendingMessages.Any() && _subscribers.Any())
+        if (_subscribers.IsEmpty)
         {
-            var message = _pendingMessages.Dequeue();
+            return;
+        }
 
+        while (_pendingMessages.TryDequeue(out var message))
+        {
             foreach (var subscriber in _subscribers)
             {
                 try
