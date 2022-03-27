@@ -6,7 +6,7 @@ using FluentAssertions;
 using Machine.Specifications;
 using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs;
+namespace MessageBus.Specs.Subscribe;
 
 [Subject("Subscription: Multithreading")]
 class multithreading_subscription_context : bus_context

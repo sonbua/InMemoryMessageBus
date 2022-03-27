@@ -7,7 +7,7 @@
 
   <PropertyGroup>
     <AnalysisMode>Recommended</AnalysisMode>
-    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisLevel>6.0</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>

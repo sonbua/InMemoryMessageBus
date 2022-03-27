@@ -3,7 +3,7 @@ using FluentAssertions;
 using Machine.Specifications;
 using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs;
+namespace MessageBus.Specs.PublishMethod;
 
 [Subject("Publishing: Validation")]
 class publishing_validation_context : bus_context

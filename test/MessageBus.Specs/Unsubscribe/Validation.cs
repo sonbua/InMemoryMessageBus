@@ -3,7 +3,7 @@ using FluentAssertions;
 using Machine.Specifications;
 using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs;
+namespace MessageBus.Specs.Unsubscribe;
 
 [Subject("Unsubscription: Validation")]
 class unsubscription_validation_context : bus_context

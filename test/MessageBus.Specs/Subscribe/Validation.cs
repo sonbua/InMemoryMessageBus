@@ -3,7 +3,7 @@ using FluentAssertions;
 using Machine.Specifications;
 using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs;
+namespace MessageBus.Specs.Subscribe;
 
 [Subject("Subscription: Validation")]
 class subscription_validation_context : bus_context
