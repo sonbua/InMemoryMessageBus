@@ -58,7 +58,17 @@ public class Bus
 
             foreach (var subscriber in _subscribers)
             {
-                subscriber.Value.MessageHandler.Invoke(message);
+                try
+                {
+                    subscriber.Value.MessageHandler(message);
+                }
+// Ensures exception from a subscriber won't affect next subscriber to receive the message.
+#pragma warning disable CA1031
+                catch
+#pragma warning restore CA1031
+                {
+                    // ignored
+                }
             }
         }
     }
