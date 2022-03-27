@@ -15,7 +15,7 @@ class multithreading_unsubscription_context : bus_context
 
 [Tags(tag.async)]
 [Tags(tag.concurrency)]
-class when_many_subscribers_are_unsubscribed_concurrently : multithreading_unsubscription_context
+class when_multiple_subscribers_are_unsubscribed_concurrently : multithreading_unsubscription_context
 {
     Establish context = () =>
     {

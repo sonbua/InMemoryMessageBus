@@ -58,7 +58,9 @@ public class Bus
 
         if (string.IsNullOrWhiteSpace(subscriberName))
         {
-            throw new ArgumentException("Subscriber name should not be empty or whitespace(s).", nameof(subscriberName));
+            throw new ArgumentException(
+                "Subscriber name should not be empty or whitespace(s).",
+                nameof(subscriberName));
         }
 
         _subscribers.TryRemove(subscriberName, out _);
