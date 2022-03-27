@@ -17,7 +17,7 @@ class when_publishing_a_message : single_subscriber_context
     It should_the_message_be_consumed = () => bus.PendingCount.Should().Be(0);
 }
 
-class given_the_subscriber_is_unsubscribed_when_publishing_a_message : single_subscriber_context
+class given_the_subscriber_unsubscribed_when_publishing_a_message : single_subscriber_context
 {
     Establish context = () => bus.Unsubscribe("a subscriber");
 
