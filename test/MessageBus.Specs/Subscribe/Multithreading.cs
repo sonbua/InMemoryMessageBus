@@ -29,6 +29,13 @@ class when_many_subscribers_subscribe_concurrently : multithreading_subscription
 
     It should_succeed = async () => await aggregated_subscription.Should().NotThrowAsync();
 
+    It should_be_able_to_handle_message_published_to_it = () =>
+    {
+        bus.Publish("a message");
+
+        bus.PendingCount.Should().Be(0);
+    };
+
     static Func<Task> aggregated_subscription;
     static IEnumerable<Task> subscriptions;
 }
