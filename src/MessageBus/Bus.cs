@@ -7,16 +7,19 @@ namespace MessageBus;
 
 public class Bus
 {
-    private readonly ConcurrentQueue<object> _pendingMessages;
+    private readonly string _defaultChannel;
+    private readonly ConcurrentDictionary<string, ConcurrentQueue<object>> _routingQueue;
     private readonly ConcurrentDictionary<string, Subscriber> _subscribers;
 
     public Bus()
     {
-        _pendingMessages = new ConcurrentQueue<object>();
+        _defaultChannel = "_default_channel";
+        _routingQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
+        _routingQueue.TryAdd(_defaultChannel, new ConcurrentQueue<object>());
         _subscribers = new ConcurrentDictionary<string, Subscriber>();
     }
 
-    public long PendingCount => _pendingMessages.Count;
+    public long PendingCount => DefaultQueue().Count;
 
     public void Publish(object message)
     {
@@ -25,7 +28,7 @@ public class Bus
             throw new ArgumentNullException(nameof(message));
         }
 
-        _pendingMessages.Enqueue(message);
+        DefaultQueue().Enqueue(message);
 
         StartConsuming();
     }
@@ -71,7 +74,9 @@ public class Bus
             return;
         }
 
-        while (_pendingMessages.TryDequeue(out var message))
+        var defaultQueue = DefaultQueue();
+
+        while (defaultQueue.TryDequeue(out var message))
         {
             foreach (var subscriber in _subscribers)
             {
@@ -88,5 +93,23 @@ public class Bus
                 }
             }
         }
+    }
+
+    private ConcurrentQueue<object> DefaultQueue()
+    {
+        var hasDefaultQueue = _routingQueue.TryGetValue(_defaultChannel, out var defaultQueue);
+
+        if (!hasDefaultQueue)
+        {
+            throw new InvalidOperationException($"Fatal: There is no default channel '{_defaultChannel}'.");
+        }
+
+        if (defaultQueue is null)
+        {
+            throw new InvalidOperationException(
+                $"Fatal: There is default channel '{_defaultChannel}', but queue is null.");
+        }
+
+        return defaultQueue;
     }
 }
