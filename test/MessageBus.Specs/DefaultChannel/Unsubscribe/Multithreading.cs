@@ -39,11 +39,11 @@ class when_multiple_subscribers_are_unsubscribed_concurrently : multithreading_u
 
     It should_there_be_no_subscriber_to_handle_a_message_published_to_it = () =>
     {
-        bus.PendingCount.Should().Be(0);
+        bus.CountPending().Should().Be(0);
 
         bus.Publish("a message");
 
-        bus.PendingCount.Should().Be(1);
+        bus.CountPending().Should().Be(1);
     };
 
     static IEnumerable<Task> unsubscriptions;

@@ -19,16 +19,20 @@ public class Bus
         _subscribers = new ConcurrentDictionary<string, Subscriber>();
     }
 
-    public long PendingCount => DefaultQueue().Count;
+    public long CountPending() => CountPending(_defaultChannel);
 
-    public void Publish(object message)
+    public long CountPending(string channelName) => GetQueue(channelName).Count;
+
+    public void Publish(object message) => Publish(message, _defaultChannel);
+
+    public void Publish(object message, string channelName)
     {
         if (message is null)
         {
             throw new ArgumentNullException(nameof(message));
         }
 
-        DefaultQueue().Enqueue(message);
+        GetQueue(channelName).Enqueue(message);
 
         StartConsuming();
     }
@@ -74,7 +78,7 @@ public class Bus
             return;
         }
 
-        var defaultQueue = DefaultQueue();
+        var defaultQueue = GetQueue(_defaultChannel);
 
         while (defaultQueue.TryDequeue(out var message))
         {
@@ -95,21 +99,6 @@ public class Bus
         }
     }
 
-    private ConcurrentQueue<object> DefaultQueue()
-    {
-        var hasDefaultQueue = _routingQueue.TryGetValue(_defaultChannel, out var defaultQueue);
-
-        if (!hasDefaultQueue)
-        {
-            throw new InvalidOperationException($"Fatal: There is no default channel '{_defaultChannel}'.");
-        }
-
-        if (defaultQueue is null)
-        {
-            throw new InvalidOperationException(
-                $"Fatal: There is default channel '{_defaultChannel}', but queue is null.");
-        }
-
-        return defaultQueue;
-    }
+    private ConcurrentQueue<object> GetQueue(string channelName) =>
+        _routingQueue.GetOrAdd(channelName, _ => new ConcurrentQueue<object>());
 }

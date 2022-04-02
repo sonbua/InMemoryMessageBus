@@ -14,7 +14,7 @@ class when_publishing_a_message : single_subscriber_context
 {
     Because of = () => bus.Publish("a message");
 
-    It should_the_message_be_consumed = () => bus.PendingCount.Should().Be(0);
+    It should_the_message_be_consumed = () => bus.CountPending().Should().Be(0);
 }
 
 class given_the_subscriber_unsubscribed_when_publishing_a_message : single_subscriber_context
@@ -23,5 +23,5 @@ class given_the_subscriber_unsubscribed_when_publishing_a_message : single_subsc
 
     Because of = () => bus.Publish("another message");
 
-    It should_there_be_a_pending_message = () => bus.PendingCount.Should().Be(1);
+    It should_there_be_a_pending_message = () => bus.CountPending().Should().Be(1);
 }

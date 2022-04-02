@@ -35,7 +35,7 @@ class when_multiple_subscribers_subscribe_concurrently : multithreading_subscrip
     {
         bus.Publish("a message");
 
-        bus.PendingCount.Should().Be(0);
+        bus.CountPending().Should().Be(0);
     };
 
     static Func<Task> aggregated_subscription;

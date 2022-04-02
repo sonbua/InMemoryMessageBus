@@ -11,7 +11,7 @@ class publishing_validation_context : bus_context
 }
 
 [Tags(tag.validation)]
-class given_null_message : publishing_validation_context
+class given_null_message_when_calling_publish : publishing_validation_context
 {
     Because of =
         // ReSharper disable once AssignNullToNotNullAttribute
