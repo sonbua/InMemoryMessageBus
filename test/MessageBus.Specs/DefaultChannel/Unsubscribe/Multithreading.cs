@@ -6,7 +6,7 @@ using FluentAssertions;
 using Machine.Specifications;
 using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs.Unsubscribe;
+namespace MessageBus.Specs.DefaultChannel.Unsubscribe;
 
 [Subject("Unsubscription: Multithreading")]
 class multithreading_unsubscription_context : bus_context
@@ -33,7 +33,9 @@ class when_multiple_subscribers_are_unsubscribed_concurrently : multithreading_u
 
     Because of = () => aggregated_unsubscription = () => Task.WhenAll(unsubscriptions);
 
-    It should_succeed = async () => await aggregated_unsubscription.Should().NotThrowAsync();
+    It should_succeed =
+        // ReSharper disable once AsyncVoidLambda
+        async () => await aggregated_unsubscription.Should().NotThrowAsync();
 
     It should_there_be_no_subscriber_to_handle_a_message_published_to_it = () =>
     {

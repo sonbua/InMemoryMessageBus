@@ -6,7 +6,7 @@ using FluentAssertions;
 using Machine.Specifications;
 using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs.PublishMethod;
+namespace MessageBus.Specs.DefaultChannel.PublishMethod;
 
 [Subject("Publishing: Multithreading")]
 class multithreading_publishing_context : bus_context
@@ -26,7 +26,9 @@ class when_multiple_messages_are_published_concurrently : multithreading_publish
 
     Because of = () => aggregated_publishing = () => Task.WhenAll(publishings);
 
-    It should_succeed = async () => await aggregated_publishing.Should().NotThrowAsync();
+    It should_succeed =
+        // ReSharper disable once AsyncVoidLambda
+        async () => await aggregated_publishing.Should().NotThrowAsync();
 
     It should_all_messages_be_pending_since_there_is_no_subscriber =
         () => bus.PendingCount.Should().Be(message_count);

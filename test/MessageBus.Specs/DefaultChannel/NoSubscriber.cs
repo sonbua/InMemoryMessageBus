@@ -2,7 +2,7 @@
 using Machine.Specifications;
 using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs;
+namespace MessageBus.Specs.DefaultChannel;
 
 [Subject("No Subscriber")]
 class no_subscriber_context : bus_context

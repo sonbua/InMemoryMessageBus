@@ -4,7 +4,7 @@ using FluentAssertions;
 using Machine.Specifications;
 using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs;
+namespace MessageBus.Specs.DefaultChannel;
 
 [Subject("Two Subscribers")]
 class two_subscribers_context : bus_context
