@@ -8,7 +8,6 @@ namespace MessageBus.Specs.DefaultChannel.Unsubscribe;
 [Subject("Unsubscription: Validation")]
 class unsubscription_validation_context : bus_context
 {
-    Establish context = () => bus.Subscribe(new Subscriber("first", _ => { }));
 }
 
 [Tags(tag.validation)]
