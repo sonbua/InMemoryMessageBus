@@ -7,9 +7,9 @@ using Machine.Specifications;
 
 namespace MessageBus.Specs.UserDefinedChannel;
 
-[Subject(typeof(Bus), "User-defined Channel: Publishing")]
 class publishing_context : user_defined_channel_context
 {
+    [Subject(typeof(Bus), "User-defined Channel: Publishing")]
     [Tags(tag.validation)]
     class given_null_message_when_calling_publish
     {
@@ -22,6 +22,7 @@ class publishing_context : user_defined_channel_context
         static Action publishing;
     }
 
+    [Subject(typeof(Bus), "User-defined Channel: Publishing")]
     [Tags(tag.concurrency)]
     class when_multiple_messages_are_published_concurrently
     {

@@ -3,9 +3,9 @@ using Machine.Specifications;
 
 namespace MessageBus.Specs.UserDefinedChannel;
 
-[Subject(typeof(Bus), "User-defined Channel: No Subscriber")]
 class no_subscriber_context : user_defined_channel_context
 {
+    [Subject(typeof(Bus), "User-defined Channel: No Subscriber")]
     class when_calling_publish
     {
         Because of = () => bus.Publish("a message", user_defined_channel);
@@ -17,6 +17,7 @@ class no_subscriber_context : user_defined_channel_context
             () => bus.CountPending().Should().Be(0);
     }
 
+    [Subject(typeof(Bus), "User-defined Channel: No Subscriber")]
     class given_a_pending_message_when_a_subscriber_subscribes_default_channel
     {
         Establish context = () =>
