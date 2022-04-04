@@ -11,7 +11,7 @@
     <PackageReference Update="Machine.Specifications" Version="1.1.0-beta.3" />
     <PackageReference Update="Machine.Specifications.Runner.VisualStudio" Version="2.10.2" />
 
-    <PackageReference Update="FluentAssertions" Version="6.5.1" />
-    <PackageReference Update="FluentAssertions.Analyzers" Version="0.16.0" />
+    <PackageReference Update="FluentAssertions" Version="6.6.0" />
+    <PackageReference Update="FluentAssertions.Analyzers" Version="0.17.2" />
   </ItemGroup>
 </Project>
