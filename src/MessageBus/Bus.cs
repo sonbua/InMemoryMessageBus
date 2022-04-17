@@ -22,7 +22,21 @@ public class Bus
 
     public long CountPending() => CountPending(_defaultChannel);
 
-    public long CountPending(string channelName) => GetQueue(channelName).Count;
+    public long CountPending(string channelName)
+    {
+        // TODO: Maybe use Ensure.That for guard
+        if (channelName is null)
+        {
+            throw new ArgumentNullException(nameof(channelName));
+        }
+
+        if (string.IsNullOrWhiteSpace(channelName))
+        {
+            throw new ArgumentException("Channel name should not be empty or whitespace(s).");
+        }
+
+        return GetQueue(channelName).Count;
+    }
 
     public void Publish(object message) => Publish(message, _defaultChannel);
 
@@ -31,6 +45,16 @@ public class Bus
         if (message is null)
         {
             throw new ArgumentNullException(nameof(message));
+        }
+
+        if (channelName is null)
+        {
+            throw new ArgumentNullException(nameof(channelName));
+        }
+
+        if (string.IsNullOrWhiteSpace(channelName))
+        {
+            throw new ArgumentException("Channel name should not be empty or whitespace(s).", nameof(channelName));
         }
 
         var queue = GetQueue(channelName);
@@ -52,6 +76,16 @@ public class Bus
         if (string.IsNullOrWhiteSpace(subscriber.Name))
         {
             throw new ArgumentException("Subscriber name should not be empty or whitespace(s).", nameof(subscriber));
+        }
+
+        if (channelName is null)
+        {
+            throw new ArgumentNullException(nameof(channelName));
+        }
+
+        if (string.IsNullOrWhiteSpace(channelName))
+        {
+            throw new ArgumentException("Channel name should not be empty or whitespace(s).");
         }
 
         var subscriptions = _channelToSubscriptionsMap.GetOrAdd(
@@ -79,6 +113,18 @@ public class Bus
                 nameof(subscriberName));
         }
 
+        if (channelName is null)
+        {
+            throw new ArgumentNullException(nameof(channelName));
+        }
+
+        if (string.IsNullOrWhiteSpace(channelName))
+        {
+            throw new ArgumentException(
+                "Channel name should not be empty or whitespace(s).",
+                nameof(subscriberName));
+        }
+
         if (_channelToSubscriptionsMap.TryGetValue(channelName, out var subscriptions)
             && !subscriptions.IsEmpty)
         {
@@ -88,6 +134,8 @@ public class Bus
 
     private void StartConsuming(string channelName)
     {
+        Debug.Assert(string.IsNullOrWhiteSpace(channelName));
+
         if (_channelToSubscriptionsMap.TryGetValue(channelName, out var subscriptions)
             && !subscriptions.IsEmpty)
         {
@@ -97,6 +145,7 @@ public class Bus
 
     private void StartConsuming(string channelName, ConcurrentDictionary<string, Subscriber> subscriptions)
     {
+        Debug.Assert(string.IsNullOrWhiteSpace(channelName));
         Debug.Assert(!subscriptions.IsEmpty);
 
         var queue = GetQueue(channelName);
@@ -135,6 +184,10 @@ public class Bus
         }
     }
 
-    private ConcurrentQueue<object> GetQueue(string channelName) =>
-        _routingQueue.GetOrAdd(channelName, _ => new ConcurrentQueue<object>());
+    private ConcurrentQueue<object> GetQueue(string channelName)
+    {
+        Debug.Assert(string.IsNullOrWhiteSpace(channelName));
+
+        return _routingQueue.GetOrAdd(channelName, _ => new ConcurrentQueue<object>());
+    }
 }

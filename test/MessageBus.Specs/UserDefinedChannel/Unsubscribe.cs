@@ -65,10 +65,69 @@ class unsubscription_context : user_defined_channel_context
     [Tags(tag.validation)]
     class given_a_subscriber_whose_name_does_not_exist_when_calling_unsubscribe
     {
-        // TODO: Unsubscription validation: channel name
         Because of = () => unsubscription = () => bus.Unsubscribe(subscriberName: "unknown", user_defined_channel);
 
         It should_not_throw = () => unsubscription.Should().NotThrow();
+
+        static Action unsubscription;
+    }
+
+    [Subject("User-defined Channel: Unsubscription")]
+    [Tags(tag.validation)]
+    class given_a_subscriber_whose_channel_name_is_null_when_calling_unsubscribe
+    {
+        Establish context = () => bus.Subscribe(new Subscriber("a subscriber", _ => { }));
+
+        Because of = () => unsubscription =
+            // ReSharper disable once AssignNullToNotNullAttribute
+            () => bus.Unsubscribe("a subscriber", channelName: null);
+
+        It should_throw_argument_null_exception = () => unsubscription.Should().Throw<ArgumentNullException>();
+
+        static Action unsubscription;
+    }
+
+    [Subject("User-defined Channel: Unsubscription")]
+    [Tags(tag.validation)]
+    class given_a_subscriber_whose_channel_name_is_empty_when_calling_unsubscribe
+    {
+        Establish context = () => bus.Subscribe(new Subscriber("a subscriber", _ => { }));
+
+        Because of = () => unsubscription = () => bus.Unsubscribe("a subscriber", channelName: "");
+
+        It should_throw_argument_exception_with_expected_message =
+            () => unsubscription.Should().Throw<ArgumentException>()
+                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+
+        static Action unsubscription;
+    }
+
+    [Subject("User-defined Channel: Unsubscription")]
+    [Tags(tag.validation)]
+    class given_a_subscriber_whose_channel_name_is_whitespaces_when_calling_unsubscribe
+    {
+        Establish context = () => bus.Subscribe(new Subscriber("a subscriber", _ => { }));
+
+        Because of = () => unsubscription = () => bus.Unsubscribe("a subscriber", channelName: "  ");
+
+        It should_throw_argument_exception_with_expected_message =
+            () => unsubscription.Should().Throw<ArgumentException>()
+                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+
+        static Action unsubscription;
+    }
+
+    [Subject("User-defined Channel: Unsubscription")]
+    [Tags(tag.validation)]
+    class given_a_subscriber_whose_channel_name_is_whitespace_and_newline_when_calling_unsubscribe
+    {
+        Establish context = () => bus.Subscribe(new Subscriber("a subscriber", _ => { }));
+
+        Because of = () => unsubscription = () => bus.Unsubscribe("a subscriber", channelName: "  \r\n  ");
+
+        It should_throw_argument_exception_with_expected_message =
+            () => unsubscription.Should().Throw<ArgumentException>()
+                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
 
         static Action unsubscription;
     }

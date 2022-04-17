@@ -77,6 +77,61 @@ class subscription_context : user_defined_channel_context
     }
 
     [Subject("User-defined Channel: Subscription")]
+    [Tags(tag.validation)]
+    class given_channel_name_is_null_when_calling_subscribe
+    {
+        Because of =
+            // ReSharper disable once AssignNullToNotNullAttribute
+            () => subscription = () => bus.Subscribe(new Subscriber("a subscriber", _ => { }), channelName: null);
+
+        It should_throw_argument_null_exception = () => subscription.Should().Throw<ArgumentNullException>();
+
+        static Action subscription;
+    }
+
+    [Subject("User-defined Channel: Subscription")]
+    [Tags(tag.validation)]
+    class given_channel_name_is_empty_when_calling_subscribe
+    {
+        Because of = () =>
+            subscription = () => bus.Subscribe(new Subscriber("a subscriber", _ => { }), channelName: "");
+
+        It should_throw_argument_exception_with_expected_message =
+            () => subscription.Should().Throw<ArgumentException>()
+                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+
+        static Action subscription;
+    }
+
+    [Subject("User-defined Channel: Subscription")]
+    [Tags(tag.validation)]
+    class given_channel_name_is_whitespaces_when_calling_subscribe
+    {
+        Because of = () =>
+            subscription = () => bus.Subscribe(new Subscriber("a subscriber", _ => { }), channelName: "  ");
+
+        It should_throw_argument_exception_with_expected_message =
+            () => subscription.Should().Throw<ArgumentException>()
+                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+
+        static Action subscription;
+    }
+
+    [Subject("User-defined Channel: Subscription")]
+    [Tags(tag.validation)]
+    class given_channel_name_is_whitespace_and_newline_when_calling_subscribe
+    {
+        Because of = () =>
+            subscription = () => bus.Subscribe(new Subscriber("a subscriber", _ => { }), channelName: "  \r\n  ");
+
+        It should_throw_argument_exception_with_expected_message =
+            () => subscription.Should().Throw<ArgumentException>()
+                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+
+        static Action subscription;
+    }
+
+    [Subject("User-defined Channel: Subscription")]
     [Tags(tag.concurrency)]
     class when_multiple_subscribers_subscribe_concurrently
     {

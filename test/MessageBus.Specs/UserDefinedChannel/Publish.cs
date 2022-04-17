@@ -9,20 +9,75 @@ namespace MessageBus.Specs.UserDefinedChannel;
 
 class publishing_context : user_defined_channel_context
 {
-    [Subject("User-defined Channel: Publishing: Validation")]
+    [Subject("User-defined Channel: Publishing")]
     [Tags(tag.validation)]
-    class given_null_message_when_calling_publish
+    class given_message_is_null_when_calling_publish
     {
         Because of =
             // ReSharper disable once AssignNullToNotNullAttribute
-            () => publishing = () => bus.Publish(null, user_defined_channel);
+            () => publishing = () => bus.Publish(message: null, user_defined_channel);
 
         It should_throw_argument_null_exception = () => publishing.Should().Throw<ArgumentNullException>();
 
         static Action publishing;
     }
 
-    [Subject("User-defined Channel: Publishing: Multithreading")]
+    [Subject("User-defined Channel: Publishing")]
+    [Tags(tag.validation)]
+    class given_channel_name_is_null_when_calling_publish
+    {
+        Because of =
+            // ReSharper disable once AssignNullToNotNullAttribute
+            () => publishing = () => bus.Publish("a message", channelName: null);
+
+        It should_throw_argument_null_exception = () => publishing.Should().Throw<ArgumentNullException>();
+
+        static Action publishing;
+    }
+
+    [Subject("User-defined Channel: Publishing")]
+    [Tags(tag.validation)]
+    class given_channel_name_is_empty_when_calling_publish
+    {
+        Because of =
+            () => publishing = () => bus.Publish("a message", channelName: "");
+
+        It should_throw_argument_exception_with_expected_message =
+            () => publishing.Should().Throw<ArgumentException>()
+                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+
+        static Action publishing;
+    }
+
+    [Subject("User-defined Channel: Publishing")]
+    [Tags(tag.validation)]
+    class given_channel_name_is_whitespaces_when_calling_publish
+    {
+        Because of =
+            () => publishing = () => bus.Publish("a message", channelName: "  ");
+
+        It should_throw_argument_exception_with_expected_message =
+            () => publishing.Should().Throw<ArgumentException>()
+                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+
+        static Action publishing;
+    }
+
+    [Subject("User-defined Channel: Publishing")]
+    [Tags(tag.validation)]
+    class given_channel_name_is_whitespace_and_newline_when_calling_publish
+    {
+        Because of =
+            () => publishing = () => bus.Publish("a message", channelName: "  \r\n  ");
+
+        It should_throw_argument_exception_with_expected_message =
+            () => publishing.Should().Throw<ArgumentException>()
+                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+
+        static Action publishing;
+    }
+
+    [Subject("User-defined Channel: Publishing")]
     [Tags(tag.concurrency)]
     class when_multiple_messages_are_published_concurrently
     {
