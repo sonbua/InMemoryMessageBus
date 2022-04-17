@@ -25,11 +25,15 @@ class count_pending_context : bus_context
     {
         Because of = () => count_action = () => bus.CountPending(channelName: "");
 
-        It should_throw_argument_exception_with_expected_message =
-            () => count_action.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = count_action.Should().Throw<ArgumentException>().Which;
 
-        static Func<long> count_action;
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'channelName')");
+
+        static Action count_action;
+        static ArgumentException exception;
     }
 
     [Subject("User-defined Channel: CountPending")]
@@ -38,11 +42,15 @@ class count_pending_context : bus_context
     {
         Because of = () => count_action = () => bus.CountPending(channelName: "  ");
 
-        It should_throw_argument_exception_with_expected_message =
-            () => count_action.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = count_action.Should().Throw<ArgumentException>().Which;
 
-        static Func<long> count_action;
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'channelName')");
+
+        static Action count_action;
+        static ArgumentException exception;
     }
 
     [Subject("User-defined Channel: CountPending")]
@@ -51,10 +59,14 @@ class count_pending_context : bus_context
     {
         Because of = () => count_action = () => bus.CountPending(channelName: "  \r\n  ");
 
-        It should_throw_argument_exception_with_expected_message =
-            () => count_action.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = count_action.Should().Throw<ArgumentException>().Which;
 
-        static Func<long> count_action;
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'channelName')");
+
+        static Action count_action;
+        static ArgumentException exception;
     }
 }

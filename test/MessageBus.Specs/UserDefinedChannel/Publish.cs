@@ -42,11 +42,15 @@ class publishing_context : user_defined_channel_context
         Because of =
             () => publishing = () => bus.Publish("a message", channelName: "");
 
-        It should_throw_argument_exception_with_expected_message =
-            () => publishing.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = publishing.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'channelName')");
 
         static Action publishing;
+        static ArgumentException exception;
     }
 
     [Subject("User-defined Channel: Publishing")]
@@ -56,11 +60,15 @@ class publishing_context : user_defined_channel_context
         Because of =
             () => publishing = () => bus.Publish("a message", channelName: "  ");
 
-        It should_throw_argument_exception_with_expected_message =
-            () => publishing.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = publishing.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'channelName')");
 
         static Action publishing;
+        static ArgumentException exception;
     }
 
     [Subject("User-defined Channel: Publishing")]
@@ -70,11 +78,15 @@ class publishing_context : user_defined_channel_context
         Because of =
             () => publishing = () => bus.Publish("a message", channelName: "  \r\n  ");
 
-        It should_throw_argument_exception_with_expected_message =
-            () => publishing.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = publishing.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'channelName')");
 
         static Action publishing;
+        static ArgumentException exception;
     }
 
     [Subject("User-defined Channel: Publishing")]

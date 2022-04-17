@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using EnsureThat;
 
 [assembly: CLSCompliant(true)]
 
@@ -24,16 +25,7 @@ public class Bus
 
     public long CountPending(string channelName)
     {
-        // TODO: Maybe use Ensure.That for guard
-        if (channelName is null)
-        {
-            throw new ArgumentNullException(nameof(channelName));
-        }
-
-        if (string.IsNullOrWhiteSpace(channelName))
-        {
-            throw new ArgumentException("Channel name should not be empty or whitespace(s).");
-        }
+        EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
         return GetQueue(channelName).Count;
     }
@@ -42,20 +34,8 @@ public class Bus
 
     public void Publish(object message, string channelName)
     {
-        if (message is null)
-        {
-            throw new ArgumentNullException(nameof(message));
-        }
-
-        if (channelName is null)
-        {
-            throw new ArgumentNullException(nameof(channelName));
-        }
-
-        if (string.IsNullOrWhiteSpace(channelName))
-        {
-            throw new ArgumentException("Channel name should not be empty or whitespace(s).", nameof(channelName));
-        }
+        EnsureArg.IsNotNull(message, nameof(message));
+        EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
         var queue = GetQueue(channelName);
 
@@ -68,25 +48,8 @@ public class Bus
 
     public void Subscribe(Subscriber subscriber, string channelName)
     {
-        if (subscriber is null)
-        {
-            throw new ArgumentNullException(nameof(subscriber));
-        }
-
-        if (string.IsNullOrWhiteSpace(subscriber.Name))
-        {
-            throw new ArgumentException("Subscriber name should not be empty or whitespace(s).", nameof(subscriber));
-        }
-
-        if (channelName is null)
-        {
-            throw new ArgumentNullException(nameof(channelName));
-        }
-
-        if (string.IsNullOrWhiteSpace(channelName))
-        {
-            throw new ArgumentException("Channel name should not be empty or whitespace(s).");
-        }
+        EnsureArg.IsNotNull(subscriber, nameof(subscriber));
+        EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
         var subscriptions = _channelToSubscriptionsMap.GetOrAdd(
             channelName,
@@ -101,29 +64,8 @@ public class Bus
 
     public void Unsubscribe(string subscriberName, string channelName)
     {
-        if (subscriberName is null)
-        {
-            throw new ArgumentNullException(nameof(subscriberName));
-        }
-
-        if (string.IsNullOrWhiteSpace(subscriberName))
-        {
-            throw new ArgumentException(
-                "Subscriber name should not be empty or whitespace(s).",
-                nameof(subscriberName));
-        }
-
-        if (channelName is null)
-        {
-            throw new ArgumentNullException(nameof(channelName));
-        }
-
-        if (string.IsNullOrWhiteSpace(channelName))
-        {
-            throw new ArgumentException(
-                "Channel name should not be empty or whitespace(s).",
-                nameof(subscriberName));
-        }
+        EnsureArg.IsNotNullOrWhiteSpace(subscriberName, nameof(subscriberName));
+        EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
         if (_channelToSubscriptionsMap.TryGetValue(channelName, out var subscriptions)
             && !subscriptions.IsEmpty)

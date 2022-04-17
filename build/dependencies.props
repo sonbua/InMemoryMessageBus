@@ -1,6 +1,7 @@
 <Project>
   <!--  Common dependencies  -->
   <ItemGroup>
+      <PackageReference Update="Ensure.That" Version="10.1.0" />
       <PackageReference Update="System.Threading.Channels" Version="6.0.0" />
   </ItemGroup>
 

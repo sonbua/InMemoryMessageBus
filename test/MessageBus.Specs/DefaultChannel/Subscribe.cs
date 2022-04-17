@@ -31,11 +31,14 @@ class subscription_context : bus_context
             // ReSharper disable once AssignNullToNotNullAttribute
             () => subscription = () => bus.Subscribe(new Subscriber(null, _ => { }));
 
-        It should_throw_argument_exception_with_expected_message =
-            () => subscription.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Subscriber name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = subscription.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should().Be("Value can not be null. (Parameter 'name')");
 
         static Action subscription;
+        static ArgumentException exception;
     }
 
     [Subject("Subscription")]
@@ -44,11 +47,15 @@ class subscription_context : bus_context
     {
         Because of = () => subscription = () => bus.Subscribe(new Subscriber("", _ => { }));
 
-        It should_throw_argument_exception_with_expected_message =
-            () => subscription.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Subscriber name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = subscription.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'name')");
 
         static Action subscription;
+        static ArgumentException exception;
     }
 
     [Subject("Subscription")]
@@ -57,11 +64,15 @@ class subscription_context : bus_context
     {
         Because of = () => subscription = () => bus.Subscribe(new Subscriber("  ", _ => { }));
 
-        It should_throw_argument_exception_with_expected_message =
-            () => subscription.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Subscriber name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = subscription.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'name')");
 
         static Action subscription;
+        static ArgumentException exception;
     }
 
     [Subject("Subscription")]
@@ -70,11 +81,15 @@ class subscription_context : bus_context
     {
         Because of = () => subscription = () => bus.Subscribe(new Subscriber("  \r\n  ", _ => { }));
 
-        It should_throw_argument_exception_with_expected_message =
-            () => subscription.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Subscriber name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = subscription.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'name')");
 
         static Action subscription;
+        static ArgumentException exception;
     }
 
     [Subject("Subscription")]

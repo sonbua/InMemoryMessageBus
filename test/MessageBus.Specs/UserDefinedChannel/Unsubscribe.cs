@@ -28,11 +28,15 @@ class unsubscription_context : user_defined_channel_context
     {
         Because of = () => unsubscription = () => bus.Unsubscribe(subscriberName: "", user_defined_channel);
 
-        It should_throw_argument_exception_with_expected_message =
-            () => unsubscription.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Subscriber name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = unsubscription.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should().Be(
+                "The string can't be left empty, null or consist of only whitespaces. (Parameter 'subscriberName')");
 
         static Action unsubscription;
+        static ArgumentException exception;
     }
 
     [Subject("User-defined Channel: Unsubscription")]
@@ -41,11 +45,15 @@ class unsubscription_context : user_defined_channel_context
     {
         Because of = () => unsubscription = () => bus.Unsubscribe(subscriberName: "  ", user_defined_channel);
 
-        It should_throw_argument_exception_with_expected_message =
-            () => unsubscription.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Subscriber name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = unsubscription.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should().Be(
+                "The string can't be left empty, null or consist of only whitespaces. (Parameter 'subscriberName')");
 
         static Action unsubscription;
+        static ArgumentException exception;
     }
 
     [Subject("User-defined Channel: Unsubscription")]
@@ -54,11 +62,15 @@ class unsubscription_context : user_defined_channel_context
     {
         Because of = () => unsubscription = () => bus.Unsubscribe(subscriberName: "  \r\n  ", user_defined_channel);
 
-        It should_throw_argument_exception_with_expected_message =
-            () => unsubscription.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Subscriber name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = unsubscription.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should().Be(
+                "The string can't be left empty, null or consist of only whitespaces. (Parameter 'subscriberName')");
 
         static Action unsubscription;
+        static ArgumentException exception;
     }
 
     [Subject("User-defined Channel: Unsubscription")]
@@ -95,11 +107,15 @@ class unsubscription_context : user_defined_channel_context
 
         Because of = () => unsubscription = () => bus.Unsubscribe("a subscriber", channelName: "");
 
-        It should_throw_argument_exception_with_expected_message =
-            () => unsubscription.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = unsubscription.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'channelName')");
 
         static Action unsubscription;
+        static ArgumentException exception;
     }
 
     [Subject("User-defined Channel: Unsubscription")]
@@ -110,11 +126,15 @@ class unsubscription_context : user_defined_channel_context
 
         Because of = () => unsubscription = () => bus.Unsubscribe("a subscriber", channelName: "  ");
 
-        It should_throw_argument_exception_with_expected_message =
-            () => unsubscription.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = unsubscription.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'channelName')");
 
         static Action unsubscription;
+        static ArgumentException exception;
     }
 
     [Subject("User-defined Channel: Unsubscription")]
@@ -125,11 +145,15 @@ class unsubscription_context : user_defined_channel_context
 
         Because of = () => unsubscription = () => bus.Unsubscribe("a subscriber", channelName: "  \r\n  ");
 
-        It should_throw_argument_exception_with_expected_message =
-            () => unsubscription.Should().Throw<ArgumentException>()
-                .And.Message.Should().StartWith("Channel name should not be empty or whitespace(s).");
+        It should_throw_argument_exception =
+            () => exception = unsubscription.Should().Throw<ArgumentException>().Which;
+
+        It should_have_set_exception_message =
+            () => exception.Message.Should()
+                .Be("The string can't be left empty, null or consist of only whitespaces. (Parameter 'channelName')");
 
         static Action unsubscription;
+        static ArgumentException exception;
     }
 
     [Subject("User-defined Channel: Unsubscription")]
