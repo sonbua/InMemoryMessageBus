@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 [assembly: CLSCompliant(true)]
 
@@ -7,30 +8,41 @@ namespace MessageBus;
 
 public class Bus
 {
-    private readonly ConcurrentQueue<object> _pendingMessages;
-    private readonly ConcurrentDictionary<string, Subscriber> _subscribers;
+    private readonly string _defaultChannel;
+    private readonly ConcurrentDictionary<string, ConcurrentQueue<object>> _routingQueue;
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, Subscriber>> _channelToSubscriptionsMap;
 
     public Bus()
     {
-        _pendingMessages = new ConcurrentQueue<object>();
-        _subscribers = new ConcurrentDictionary<string, Subscriber>();
+        _defaultChannel = "_default_channel";
+        _routingQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
+        _routingQueue.TryAdd(_defaultChannel, new ConcurrentQueue<object>());
+        _channelToSubscriptionsMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, Subscriber>>();
     }
 
-    public long PendingCount => _pendingMessages.Count;
+    public long CountPending() => CountPending(_defaultChannel);
 
-    public void Publish(object message)
+    public long CountPending(string channelName) => GetQueue(channelName).Count;
+
+    public void Publish(object message) => Publish(message, _defaultChannel);
+
+    public void Publish(object message, string channelName)
     {
         if (message is null)
         {
             throw new ArgumentNullException(nameof(message));
         }
 
-        _pendingMessages.Enqueue(message);
+        var queue = GetQueue(channelName);
 
-        StartConsuming();
+        queue.Enqueue(message);
+
+        StartConsuming(channelName);
     }
 
-    public void Subscribe(Subscriber subscriber)
+    public void Subscribe(Subscriber subscriber) => Subscribe(subscriber, _defaultChannel);
+
+    public void Subscribe(Subscriber subscriber, string channelName)
     {
         if (subscriber is null)
         {
@@ -42,12 +54,18 @@ public class Bus
             throw new ArgumentException("Subscriber name should not be empty or whitespace(s).", nameof(subscriber));
         }
 
-        _subscribers.TryAdd(subscriber.Name, subscriber);
+        var subscriptions = _channelToSubscriptionsMap.GetOrAdd(
+            channelName,
+            static _ => new ConcurrentDictionary<string, Subscriber>());
 
-        StartConsuming();
+        subscriptions.TryAdd(subscriber.Name, subscriber);
+
+        StartConsuming(channelName, subscriptions);
     }
 
-    public void Unsubscribe(string subscriberName)
+    public void Unsubscribe(string subscriberName) => Unsubscribe(subscriberName, _defaultChannel);
+
+    public void Unsubscribe(string subscriberName, string channelName)
     {
         if (subscriberName is null)
         {
@@ -61,19 +79,46 @@ public class Bus
                 nameof(subscriberName));
         }
 
-        _subscribers.TryRemove(subscriberName, out _);
+        if (_channelToSubscriptionsMap.TryGetValue(channelName, out var subscriptions)
+            && !subscriptions.IsEmpty)
+        {
+            subscriptions.TryRemove(subscriberName, out _);
+        }
     }
 
-    private void StartConsuming()
+    private void StartConsuming(string channelName)
     {
-        if (_subscribers.IsEmpty)
+        if (_channelToSubscriptionsMap.TryGetValue(channelName, out var subscriptions)
+            && !subscriptions.IsEmpty)
+        {
+            StartConsuming(channelName, subscriptions);
+        }
+    }
+
+    private void StartConsuming(string channelName, ConcurrentDictionary<string, Subscriber> subscriptions)
+    {
+        Debug.Assert(!subscriptions.IsEmpty);
+
+        var queue = GetQueue(channelName);
+
+        if (queue.IsEmpty)
         {
             return;
         }
 
-        while (_pendingMessages.TryDequeue(out var message))
+        StartConsuming(queue, subscriptions);
+    }
+
+    private static void StartConsuming(
+        ConcurrentQueue<object> queue,
+        ConcurrentDictionary<string, Subscriber> subscriptions)
+    {
+        Debug.Assert(!queue.IsEmpty);
+        Debug.Assert(!subscriptions.IsEmpty);
+
+        while (queue.TryDequeue(out var message))
         {
-            foreach (var subscriber in _subscribers)
+            foreach (var subscriber in subscriptions)
             {
                 try
                 {
@@ -89,4 +134,7 @@ public class Bus
             }
         }
     }
+
+    private ConcurrentQueue<object> GetQueue(string channelName) =>
+        _routingQueue.GetOrAdd(channelName, _ => new ConcurrentQueue<object>());
 }

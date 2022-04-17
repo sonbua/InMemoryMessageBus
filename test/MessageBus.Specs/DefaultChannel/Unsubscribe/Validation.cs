@@ -3,18 +3,19 @@ using FluentAssertions;
 using Machine.Specifications;
 using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs.Unsubscribe;
+namespace MessageBus.Specs.DefaultChannel.Unsubscribe;
 
 [Subject("Unsubscription: Validation")]
 class unsubscription_validation_context : bus_context
 {
-    Establish context = () => bus.Subscribe(new Subscriber("first", _ => { }));
 }
 
 [Tags(tag.validation)]
 class given_subscriber_name_is_null_when_calling_unsubscribe : unsubscription_validation_context
 {
-    Because of = () => unsubscription = () => bus.Unsubscribe(subscriberName: null);
+    Because of =
+        // ReSharper disable once AssignNullToNotNullAttribute
+        () => unsubscription = () => bus.Unsubscribe(subscriberName: null);
 
     It should_throw_argument_null_exception = () => unsubscription.Should().Throw<ArgumentNullException>();
 

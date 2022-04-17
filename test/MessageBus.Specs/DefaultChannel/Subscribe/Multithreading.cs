@@ -6,7 +6,7 @@ using FluentAssertions;
 using Machine.Specifications;
 using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs.Subscribe;
+namespace MessageBus.Specs.DefaultChannel.Subscribe;
 
 [Subject("Subscription: Multithreading")]
 class multithreading_subscription_context : bus_context
@@ -27,13 +27,15 @@ class when_multiple_subscribers_subscribe_concurrently : multithreading_subscrip
 
     Because of = () => aggregated_subscription = () => Task.WhenAll(subscriptions);
 
-    It should_succeed = async () => await aggregated_subscription.Should().NotThrowAsync();
+    It should_succeed =
+        // ReSharper disable once AsyncVoidLambda
+        async () => await aggregated_subscription.Should().NotThrowAsync();
 
     It should_be_able_to_handle_message_published_to_it = () =>
     {
         bus.Publish("a message");
 
-        bus.PendingCount.Should().Be(0);
+        bus.CountPending().Should().Be(0);
     };
 
     static Func<Task> aggregated_subscription;

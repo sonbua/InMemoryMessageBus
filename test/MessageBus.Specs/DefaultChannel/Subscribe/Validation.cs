@@ -3,7 +3,7 @@ using FluentAssertions;
 using Machine.Specifications;
 using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs.Subscribe;
+namespace MessageBus.Specs.DefaultChannel.Subscribe;
 
 [Subject("Subscription: Validation")]
 class subscription_validation_context : bus_context
@@ -13,7 +13,9 @@ class subscription_validation_context : bus_context
 [Tags(tag.validation)]
 class given_subscriber_is_null_when_calling_subscribe : subscription_validation_context
 {
-    Because of = () => subscription = () => bus.Subscribe(subscriber: null);
+    Because of =
+        // ReSharper disable once AssignNullToNotNullAttribute
+        () => subscription = () => bus.Subscribe(subscriber: null);
 
     It should_throw_argument_null_exception = () => subscription.Should().Throw<ArgumentNullException>();
 
@@ -23,7 +25,9 @@ class given_subscriber_is_null_when_calling_subscribe : subscription_validation_
 [Tags(tag.validation)]
 class given_subscriber_name_is_null_when_calling_subscribe : subscription_validation_context
 {
-    Because of = () => subscription = () => bus.Subscribe(new Subscriber(null, _ => { }));
+    Because of =
+        // ReSharper disable once AssignNullToNotNullAttribute
+        () => subscription = () => bus.Subscribe(new Subscriber(null, _ => { }));
 
     It should_throw_argument_exception_with_expected_message =
         () => subscription.Should().Throw<ArgumentException>()
