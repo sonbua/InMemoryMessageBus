@@ -22,7 +22,7 @@ class two_subscribers_same_channel_context : user_defined_channel_context
         bus.Subscribe(new Subscriber("success", _ => spy.Add("success")), user_defined_channel);
     };
 
-    [Subject(typeof(Bus), "User-defined Channel: Two Subscribers: Same Channel")]
+    [Subject("User-defined Channel: Two Subscribers: Same Channel")]
     class given_a_faulted_subscriber_when_exception_thrown_for_one_subscriber
     {
         Because of = () => bus.Publish("a message", user_defined_channel);

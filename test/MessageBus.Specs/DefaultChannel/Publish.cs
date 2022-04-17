@@ -4,25 +4,27 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Machine.Specifications;
+using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs.UserDefinedChannel;
+namespace MessageBus.Specs.DefaultChannel;
 
-class publishing_context : user_defined_channel_context
+class publishing_context : bus_context
 {
-    [Subject("User-defined Channel: Publishing: Validation")]
+    [Subject("Publishing")]
     [Tags(tag.validation)]
     class given_null_message_when_calling_publish
     {
         Because of =
             // ReSharper disable once AssignNullToNotNullAttribute
-            () => publishing = () => bus.Publish(null, user_defined_channel);
+            () => publishing = () => bus.Publish(null);
 
         It should_throw_argument_null_exception = () => publishing.Should().Throw<ArgumentNullException>();
 
         static Action publishing;
     }
 
-    [Subject("User-defined Channel: Publishing: Multithreading")]
+    [Subject("Publishing")]
+    [Tags(tag.async)]
     [Tags(tag.concurrency)]
     class when_multiple_messages_are_published_concurrently
     {
@@ -31,7 +33,7 @@ class publishing_context : user_defined_channel_context
             message_count = 10_000;
             publishings = Enumerable.Range(1, message_count)
                 .Select(_ => Guid.NewGuid().ToString("N"))
-                .Select(message => Task.Factory.StartNew(() => bus.Publish(message, user_defined_channel)));
+                .Select(message => Task.Factory.StartNew(() => bus.Publish(message)));
         };
 
         Because of = () => aggregated_publishing = () => Task.WhenAll(publishings);
@@ -41,9 +43,7 @@ class publishing_context : user_defined_channel_context
             async () => await aggregated_publishing.Should().NotThrowAsync();
 
         It should_all_messages_be_pending_since_there_is_no_subscriber =
-            () => bus.CountPending(user_defined_channel).Should().Be(message_count);
-
-        It should_default_channel_be_empty = () => bus.CountPending().Should().Be(0);
+            () => bus.CountPending().Should().Be(message_count);
 
         static int message_count;
         static IEnumerable<Task> publishings;

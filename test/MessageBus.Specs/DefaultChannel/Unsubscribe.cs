@@ -4,29 +4,30 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Machine.Specifications;
+using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs.UserDefinedChannel;
+namespace MessageBus.Specs.DefaultChannel;
 
-class unsubscription_context : user_defined_channel_context
+class unsubscription_context : bus_context
 {
-    [Subject("User-defined Channel: Unsubscription")]
+    [Subject("Unsubscription")]
     [Tags(tag.validation)]
     class given_subscriber_name_is_null_when_calling_unsubscribe
     {
         Because of =
             // ReSharper disable once AssignNullToNotNullAttribute
-            () => unsubscription = () => bus.Unsubscribe(subscriberName: null, user_defined_channel);
+            () => unsubscription = () => bus.Unsubscribe(subscriberName: null);
 
         It should_throw_argument_null_exception = () => unsubscription.Should().Throw<ArgumentNullException>();
 
         static Action unsubscription;
     }
 
-    [Subject("User-defined Channel: Unsubscription")]
+    [Subject("Unsubscription")]
     [Tags(tag.validation)]
     class given_subscriber_name_is_empty_when_calling_unsubscribe
     {
-        Because of = () => unsubscription = () => bus.Unsubscribe(subscriberName: "", user_defined_channel);
+        Because of = () => unsubscription = () => bus.Unsubscribe(subscriberName: "");
 
         It should_throw_argument_exception_with_expected_message =
             () => unsubscription.Should().Throw<ArgumentException>()
@@ -35,11 +36,11 @@ class unsubscription_context : user_defined_channel_context
         static Action unsubscription;
     }
 
-    [Subject("User-defined Channel: Unsubscription")]
+    [Subject("Unsubscription")]
     [Tags(tag.validation)]
     class given_subscriber_name_is_whitespaces_when_calling_unsubscribe
     {
-        Because of = () => unsubscription = () => bus.Unsubscribe(subscriberName: "  ", user_defined_channel);
+        Because of = () => unsubscription = () => bus.Unsubscribe(subscriberName: "  ");
 
         It should_throw_argument_exception_with_expected_message =
             () => unsubscription.Should().Throw<ArgumentException>()
@@ -48,11 +49,11 @@ class unsubscription_context : user_defined_channel_context
         static Action unsubscription;
     }
 
-    [Subject("User-defined Channel: Unsubscription")]
+    [Subject("Unsubscription")]
     [Tags(tag.validation)]
     class given_subscriber_name_is_whitespace_and_newline_when_calling_unsubscribe
     {
-        Because of = () => unsubscription = () => bus.Unsubscribe(subscriberName: "  \r\n  ", user_defined_channel);
+        Because of = () => unsubscription = () => bus.Unsubscribe("  \r\n  ");
 
         It should_throw_argument_exception_with_expected_message =
             () => unsubscription.Should().Throw<ArgumentException>()
@@ -61,19 +62,19 @@ class unsubscription_context : user_defined_channel_context
         static Action unsubscription;
     }
 
-    [Subject("User-defined Channel: Unsubscription")]
+    [Subject("Unsubscription")]
     [Tags(tag.validation)]
     class given_a_subscriber_whose_name_does_not_exist_when_calling_unsubscribe
     {
-        // TODO: Unsubscription validation: channel name
-        Because of = () => unsubscription = () => bus.Unsubscribe(subscriberName: "unknown", user_defined_channel);
+        Because of = () => unsubscription = () => bus.Unsubscribe("unknown");
 
         It should_not_throw = () => unsubscription.Should().NotThrow();
 
         static Action unsubscription;
     }
 
-    [Subject("User-defined Channel: Unsubscription")]
+    [Subject("Unsubscription")]
+    [Tags(tag.async)]
     [Tags(tag.concurrency)]
     class when_multiple_subscribers_are_unsubscribed_concurrently
     {
@@ -85,11 +86,10 @@ class unsubscription_context : user_defined_channel_context
 
             foreach (var name in subscriberNames)
             {
-                bus.Subscribe(new Subscriber(name, _ => { }), user_defined_channel);
+                bus.Subscribe(new Subscriber(name, _ => { }));
             }
 
-            unsubscriptions = subscriberNames.Select(
-                name => Task.Factory.StartNew(() => bus.Unsubscribe(name, user_defined_channel)));
+            unsubscriptions = subscriberNames.Select(name => Task.Factory.StartNew(() => bus.Unsubscribe(name)));
         };
 
         Because of = () => aggregated_unsubscription = () => Task.WhenAll(unsubscriptions);
@@ -100,11 +100,11 @@ class unsubscription_context : user_defined_channel_context
 
         It should_there_be_no_subscriber_to_handle_a_message_published_to_it = () =>
         {
-            bus.CountPending(user_defined_channel).Should().Be(0);
+            bus.CountPending().Should().Be(0);
 
-            bus.Publish("a message", user_defined_channel);
+            bus.Publish("a message");
 
-            bus.CountPending(user_defined_channel).Should().Be(1);
+            bus.CountPending().Should().Be(1);
         };
 
         static IEnumerable<Task> unsubscriptions;

@@ -4,31 +4,32 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Machine.Specifications;
+using MessageBus.Specs.Context;
 
-namespace MessageBus.Specs.UserDefinedChannel;
+namespace MessageBus.Specs.DefaultChannel;
 
-class subscription_context : user_defined_channel_context
+class subscription_context : bus_context
 {
-    [Subject("User-defined Channel: Subscription")]
+    [Subject("Subscription")]
     [Tags(tag.validation)]
     class given_subscriber_is_null_when_calling_subscribe
     {
         Because of =
             // ReSharper disable once AssignNullToNotNullAttribute
-            () => subscription = () => bus.Subscribe(subscriber: null, user_defined_channel);
+            () => subscription = () => bus.Subscribe(subscriber: null);
 
         It should_throw_argument_null_exception = () => subscription.Should().Throw<ArgumentNullException>();
 
         static Action subscription;
     }
 
-    [Subject("User-defined Channel: Subscription")]
+    [Subject("Subscription")]
     [Tags(tag.validation)]
     class given_subscriber_name_is_null_when_calling_subscribe
     {
         Because of =
             // ReSharper disable once AssignNullToNotNullAttribute
-            () => subscription = () => bus.Subscribe(new Subscriber(null, _ => { }), user_defined_channel);
+            () => subscription = () => bus.Subscribe(new Subscriber(null, _ => { }));
 
         It should_throw_argument_exception_with_expected_message =
             () => subscription.Should().Throw<ArgumentException>()
@@ -37,10 +38,11 @@ class subscription_context : user_defined_channel_context
         static Action subscription;
     }
 
-    [Subject("User-defined Channel: Subscription")]
+    [Subject("Subscription")]
+    [Tags(tag.validation)]
     class given_subscriber_name_is_empty_when_calling_subscribe
     {
-        Because of = () => subscription = () => bus.Subscribe(new Subscriber("", _ => { }), user_defined_channel);
+        Because of = () => subscription = () => bus.Subscribe(new Subscriber("", _ => { }));
 
         It should_throw_argument_exception_with_expected_message =
             () => subscription.Should().Throw<ArgumentException>()
@@ -49,11 +51,11 @@ class subscription_context : user_defined_channel_context
         static Action subscription;
     }
 
-    [Subject("User-defined Channel: Subscription")]
+    [Subject("Subscription")]
     [Tags(tag.validation)]
     class given_subscriber_name_is_whitespaces_when_calling_subscribe
     {
-        Because of = () => subscription = () => bus.Subscribe(new Subscriber("  ", _ => { }), user_defined_channel);
+        Because of = () => subscription = () => bus.Subscribe(new Subscriber("  ", _ => { }));
 
         It should_throw_argument_exception_with_expected_message =
             () => subscription.Should().Throw<ArgumentException>()
@@ -62,12 +64,11 @@ class subscription_context : user_defined_channel_context
         static Action subscription;
     }
 
-    [Subject("User-defined Channel: Subscription")]
+    [Subject("Subscription")]
     [Tags(tag.validation)]
     class given_subscriber_name_is_whitespace_and_newline_when_calling_subscribe
     {
-        Because of = () =>
-            subscription = () => bus.Subscribe(new Subscriber("  \r\n  ", _ => { }), user_defined_channel);
+        Because of = () => subscription = () => bus.Subscribe(new Subscriber("  \r\n  ", _ => { }));
 
         It should_throw_argument_exception_with_expected_message =
             () => subscription.Should().Throw<ArgumentException>()
@@ -76,7 +77,8 @@ class subscription_context : user_defined_channel_context
         static Action subscription;
     }
 
-    [Subject("User-defined Channel: Subscription")]
+    [Subject("Subscription")]
+    [Tags(tag.async)]
     [Tags(tag.concurrency)]
     class when_multiple_subscribers_subscribe_concurrently
     {
@@ -85,7 +87,7 @@ class subscription_context : user_defined_channel_context
             subscriptions = Enumerable.Range(1, 10_000)
                 .Select(_ => Guid.NewGuid().ToString("N"))
                 .Select(name => new Subscriber(name, _ => { }))
-                .Select(subscriber => Task.Factory.StartNew(() => bus.Subscribe(subscriber, user_defined_channel)));
+                .Select(subscriber => Task.Factory.StartNew(() => bus.Subscribe(subscriber)));
         };
 
         Because of = () => aggregated_subscription = () => Task.WhenAll(subscriptions);
@@ -96,12 +98,12 @@ class subscription_context : user_defined_channel_context
 
         It should_be_able_to_handle_message_published_to_it = () =>
         {
-            bus.Publish("a message", user_defined_channel);
+            bus.Publish("a message");
 
-            bus.CountPending(user_defined_channel).Should().Be(0);
+            bus.CountPending().Should().Be(0);
         };
 
-        static IEnumerable<Task> subscriptions;
         static Func<Task> aggregated_subscription;
+        static IEnumerable<Task> subscriptions;
     }
 }
