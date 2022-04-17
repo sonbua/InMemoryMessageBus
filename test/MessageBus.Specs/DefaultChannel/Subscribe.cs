@@ -12,19 +12,6 @@ class subscription_context : bus_context
 {
     [Subject("Subscription")]
     [Tags(tag.validation)]
-    class given_subscriber_is_null_when_calling_subscribe
-    {
-        Because of =
-            // ReSharper disable once AssignNullToNotNullAttribute
-            () => subscription = () => bus.Subscribe(subscriber: null);
-
-        It should_throw_argument_null_exception = () => subscription.Should().Throw<ArgumentNullException>();
-
-        static Action subscription;
-    }
-
-    [Subject("Subscription")]
-    [Tags(tag.validation)]
     class given_subscriber_name_is_null_when_calling_subscribe
     {
         Because of =

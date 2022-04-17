@@ -48,7 +48,6 @@ public class Bus
 
     public void Subscribe(Subscriber subscriber, string channelName)
     {
-        EnsureArg.IsNotNull(subscriber, nameof(subscriber));
         EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
         var subscriptions = _channelToSubscriptionsMap.GetOrAdd(

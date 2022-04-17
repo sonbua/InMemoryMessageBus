@@ -3,8 +3,7 @@ using EnsureThat;
 
 namespace MessageBus;
 
-// TODO: Be a struct?
-public record Subscriber
+public readonly record struct Subscriber
 {
     public Subscriber(string name, Action<object> messageHandler)
     {
