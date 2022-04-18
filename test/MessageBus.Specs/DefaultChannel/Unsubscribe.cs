@@ -111,9 +111,8 @@ class unsubscription_context : bus_context
         It should_there_be_no_subscriber_to_handle_a_message_published_to_it = () =>
         {
             bus.CountPending().Should().Be(0);
-
             bus.Publish("a message");
-
+            WaitForMessageToBeConsumed();
             bus.CountPending().Should().Be(1);
         };
 

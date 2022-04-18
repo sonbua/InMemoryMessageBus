@@ -99,7 +99,7 @@ class subscription_context : bus_context
         It should_be_able_to_handle_message_published_to_it = () =>
         {
             bus.Publish("a message");
-
+            WaitForMessageToBeConsumed();
             bus.CountPending().Should().Be(0);
         };
 

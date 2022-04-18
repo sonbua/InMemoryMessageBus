@@ -41,7 +41,11 @@ class publishing_context : bus_context
         It should_succeed = () => aggregated_publishing.Should().NotThrow();
 
         It should_all_messages_be_pending_since_there_is_no_subscriber =
-            () => bus.CountPending().Should().Be(message_count);
+            () =>
+            {
+                WaitForMessageToBeConsumed();
+                bus.CountPending().Should().Be(message_count);
+            };
 
         static int message_count;
         static IEnumerable<Task> publishings;

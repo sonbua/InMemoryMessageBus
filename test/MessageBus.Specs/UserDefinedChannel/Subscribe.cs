@@ -164,7 +164,7 @@ class subscription_context : user_defined_channel_context
         It should_be_able_to_handle_message_published_to_it = () =>
         {
             bus.Publish("a message", user_defined_channel);
-
+            WaitForMessageToBeConsumed();
             bus.CountPending(user_defined_channel).Should().Be(0);
         };
 

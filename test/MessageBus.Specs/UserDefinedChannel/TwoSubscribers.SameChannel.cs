@@ -25,7 +25,11 @@ class two_subscribers_same_channel_context : user_defined_channel_context
     [Subject("User-defined Channel: Two Subscribers: Same Channel")]
     class given_a_faulted_subscriber_when_exception_thrown_for_one_subscriber
     {
-        Because of = () => bus.Publish("a message", user_defined_channel);
+        Because of = () =>
+        {
+            bus.Publish("a message", user_defined_channel);
+            WaitForMessageToBeConsumed();
+        };
 
         It should_both_subscribers_receive_message = () => spy.Should().HaveCount(2);
 

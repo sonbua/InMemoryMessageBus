@@ -25,7 +25,11 @@ class two_subscribers_context : bus_context
             bus.Subscribe(new Subscriber("success", _ => spy.Add("success")));
         };
 
-        Because of = () => bus.Publish("a message");
+        Because of = () =>
+        {
+            bus.Publish("a message");
+            WaitForMessageToBeConsumed();
+        };
 
         It should_both_subscribers_receive_message = () => spy.Should().HaveCount(2);
 

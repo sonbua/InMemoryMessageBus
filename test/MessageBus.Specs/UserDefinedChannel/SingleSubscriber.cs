@@ -10,7 +10,11 @@ class single_subscriber_context : user_defined_channel_context
     [Subject("User-defined Channel: Single Subscriber")]
     class when_publishing_a_message
     {
-        Because of = () => bus.Publish("a message", user_defined_channel);
+        Because of = () =>
+        {
+            bus.Publish("a message", user_defined_channel);
+            WaitForMessageToBeConsumed();
+        };
 
         It should_the_message_be_consumed = () => bus.CountPending(user_defined_channel).Should().Be(0);
     }
@@ -20,7 +24,11 @@ class single_subscriber_context : user_defined_channel_context
     {
         Establish context = () => bus.Unsubscribe("a subscriber", user_defined_channel);
 
-        Because of = () => bus.Publish("a message", user_defined_channel);
+        Because of = () =>
+        {
+            bus.Publish("a message", user_defined_channel);
+            WaitForMessageToBeConsumed();
+        };
 
         It should_there_be_a_pending_message = () => bus.CountPending(user_defined_channel).Should().Be(1);
     }

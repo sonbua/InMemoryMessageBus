@@ -1,24 +1,25 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using EnsureThat;
 
 [assembly: CLSCompliant(true)]
 
 namespace MessageBus;
 
-public class Bus
+public class Bus : IDisposable
 {
     private readonly string _defaultChannel;
-    private readonly ConcurrentDictionary<string, ConcurrentQueue<object>> _routingQueue;
-    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, Subscriber>> _channelToSubscriptionsMap;
+    private readonly ConcurrentDictionary<string, Channel> _channelRouter;
 
     public Bus()
     {
         _defaultChannel = "_default_channel";
-        _routingQueue = new ConcurrentDictionary<string, ConcurrentQueue<object>>();
-        _routingQueue.TryAdd(_defaultChannel, new ConcurrentQueue<object>());
-        _channelToSubscriptionsMap = new ConcurrentDictionary<string, ConcurrentDictionary<string, Subscriber>>();
+        _channelRouter = new ConcurrentDictionary<string, Channel>();
+
+        GetChannel(_defaultChannel);
     }
 
     public long CountPending() => CountPending(_defaultChannel);
@@ -27,7 +28,7 @@ public class Bus
     {
         EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
-        return GetQueue(channelName).Count;
+        return GetChannel(channelName).MessageQueue.Count;
     }
 
     public void Publish(object message) => Publish(message, _defaultChannel);
@@ -37,11 +38,7 @@ public class Bus
         EnsureArg.IsNotNull(message, nameof(message));
         EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
-        var queue = GetQueue(channelName);
-
-        queue.Enqueue(message);
-
-        StartConsuming(channelName);
+        GetChannel(channelName).MessageQueue.TryAdd(message);
     }
 
     public void Subscribe(Subscriber subscriber) => Subscribe(subscriber, _defaultChannel);
@@ -50,13 +47,16 @@ public class Bus
     {
         EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
-        var subscriptions = _channelToSubscriptionsMap.GetOrAdd(
-            channelName,
-            static _ => new ConcurrentDictionary<string, Subscriber>());
+        var (_, subscriptions, manualResetEvent) = GetChannel(channelName);
 
-        subscriptions.TryAdd(subscriber.Name, subscriber);
-
-        StartConsuming(channelName, subscriptions);
+        // Modification of subscriptions and manualResetEvent should be an atomic operation
+        lock (subscriptions)
+        {
+            if (subscriptions.TryAdd(subscriber.Name, subscriber))
+            {
+                manualResetEvent.Set();
+            }
+        }
     }
 
     public void Unsubscribe(string subscriberName) => Unsubscribe(subscriberName, _defaultChannel);
@@ -66,69 +66,96 @@ public class Bus
         EnsureArg.IsNotNullOrWhiteSpace(subscriberName, nameof(subscriberName));
         EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
-        if (_channelToSubscriptionsMap.TryGetValue(channelName, out var subscriptions)
-            && !subscriptions.IsEmpty)
+        var (_, subscriptions, manualResetEvent) = GetChannel(channelName);
+
+        // Modification of subscriptions and manualResetEvent should be an atomic operation
+        lock (subscriptions)
         {
-            subscriptions.TryRemove(subscriberName, out _);
-        }
-    }
-
-    private void StartConsuming(string channelName)
-    {
-        Debug.Assert(string.IsNullOrWhiteSpace(channelName));
-
-        if (_channelToSubscriptionsMap.TryGetValue(channelName, out var subscriptions)
-            && !subscriptions.IsEmpty)
-        {
-            StartConsuming(channelName, subscriptions);
-        }
-    }
-
-    private void StartConsuming(string channelName, ConcurrentDictionary<string, Subscriber> subscriptions)
-    {
-        Debug.Assert(string.IsNullOrWhiteSpace(channelName));
-        Debug.Assert(!subscriptions.IsEmpty);
-
-        var queue = GetQueue(channelName);
-
-        if (queue.IsEmpty)
-        {
-            return;
-        }
-
-        StartConsuming(queue, subscriptions);
-    }
-
-    private static void StartConsuming(
-        ConcurrentQueue<object> queue,
-        ConcurrentDictionary<string, Subscriber> subscriptions)
-    {
-        Debug.Assert(!queue.IsEmpty);
-        Debug.Assert(!subscriptions.IsEmpty);
-
-        while (queue.TryDequeue(out var message))
-        {
-            foreach (var subscriber in subscriptions)
+            if (subscriptions.TryRemove(subscriberName, out _) &&
+                subscriptions.IsEmpty)
             {
-                try
-                {
-                    subscriber.Value.MessageHandler(message);
-                }
-// Ensures exception from a subscriber won't affect next subscriber to receive the message.
-#pragma warning disable CA1031
-                catch
-#pragma warning restore CA1031
-                {
-                    // ignored
-                }
+                manualResetEvent.Reset();
             }
         }
     }
 
-    private ConcurrentQueue<object> GetQueue(string channelName)
-    {
-        Debug.Assert(string.IsNullOrWhiteSpace(channelName));
+    private Channel GetChannel(string channelName) =>
+        _channelRouter.GetOrAdd(
+            channelName,
+            _ =>
+            {
+                var channel = new Channel(
+                    new BlockingCollection<object>(),
+                    new ConcurrentDictionary<string, Subscriber>(),
+                    new ManualResetEventSlim());
 
-        return _routingQueue.GetOrAdd(channelName, _ => new ConcurrentQueue<object>());
+                Task.Factory.StartNew(
+                    action: c =>
+                    {
+                        Debug.Assert(c is Channel);
+
+                        var (queue, subscriptions, manualResetEvent) = (Channel)c;
+
+                        manualResetEvent.Wait();
+
+                        foreach (var message in queue.GetConsumingEnumerable())
+                        {
+                            if (subscriptions.IsEmpty)
+                            {
+                                queue.TryAdd(message);
+                                manualResetEvent.Wait();
+                            }
+
+                            foreach (var (_, subscriber) in subscriptions)
+                            {
+                                try
+                                {
+                                    subscriber.MessageHandler(message);
+                                }
+// Ensures exception from a subscriber won't affect next subscriber to receive the message.
+#pragma warning disable CA1031
+                                catch
+#pragma warning restore CA1031
+                                {
+                                    // ignored
+                                }
+                            }
+                        }
+                    },
+                    state: channel,
+                    CancellationToken.None,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default);
+
+                return channel;
+            });
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            foreach (var (_, channel) in _channelRouter)
+            {
+                channel.Dispose();
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    private record Channel(
+        BlockingCollection<object> MessageQueue,
+        ConcurrentDictionary<string, Subscriber> Subscriptions,
+        ManualResetEventSlim ManualResetEvent) : IDisposable
+    {
+        public void Dispose()
+        {
+            MessageQueue.Dispose();
+            ManualResetEvent.Dispose();
+        }
     }
 }

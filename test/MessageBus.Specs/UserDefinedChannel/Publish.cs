@@ -106,7 +106,11 @@ class publishing_context : user_defined_channel_context
         It should_succeed = () => aggregated_publishing.Should().NotThrow();
 
         It should_all_messages_be_pending_since_there_is_no_subscriber =
-            () => bus.CountPending(user_defined_channel).Should().Be(message_count);
+            () =>
+            {
+                WaitForMessageToBeConsumed();
+                bus.CountPending(user_defined_channel).Should().Be(message_count);
+            };
 
         It should_default_channel_be_empty = () => bus.CountPending().Should().Be(0);
 

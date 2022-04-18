@@ -182,9 +182,8 @@ class unsubscription_context : user_defined_channel_context
         It should_there_be_no_subscriber_to_handle_a_message_published_to_it = () =>
         {
             bus.CountPending(user_defined_channel).Should().Be(0);
-
             bus.Publish("a message", user_defined_channel);
-
+            WaitForMessageToBeConsumed();
             bus.CountPending(user_defined_channel).Should().Be(1);
         };
 
