@@ -36,17 +36,15 @@ class publishing_context : bus_context
                 .Select(message => Task.Factory.StartNew(() => bus.Publish(message)));
         };
 
-        Because of = () => aggregated_publishing = () => Task.WhenAll(publishings);
+        Because of = () => aggregated_publishing = () => Task.WaitAll(publishings.ToArray());
 
-        It should_succeed =
-            // ReSharper disable once AsyncVoidLambda
-            async () => await aggregated_publishing.Should().NotThrowAsync();
+        It should_succeed = () => aggregated_publishing.Should().NotThrow();
 
         It should_all_messages_be_pending_since_there_is_no_subscriber =
             () => bus.CountPending().Should().Be(message_count);
 
         static int message_count;
         static IEnumerable<Task> publishings;
-        static Func<Task> aggregated_publishing;
+        static Action aggregated_publishing;
     }
 }

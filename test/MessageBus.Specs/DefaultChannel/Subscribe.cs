@@ -92,11 +92,9 @@ class subscription_context : bus_context
                 .Select(subscriber => Task.Factory.StartNew(() => bus.Subscribe(subscriber)));
         };
 
-        Because of = () => aggregated_subscription = () => Task.WhenAll(subscriptions);
+        Because of = () => aggregated_subscription = () => Task.WaitAll(subscriptions.ToArray());
 
-        It should_succeed =
-            // ReSharper disable once AsyncVoidLambda
-            async () => await aggregated_subscription.Should().NotThrowAsync();
+        It should_succeed = () => aggregated_subscription.Should().NotThrow();
 
         It should_be_able_to_handle_message_published_to_it = () =>
         {
@@ -105,7 +103,7 @@ class subscription_context : bus_context
             bus.CountPending().Should().Be(0);
         };
 
-        static Func<Task> aggregated_subscription;
         static IEnumerable<Task> subscriptions;
+        static Action aggregated_subscription;
     }
 }

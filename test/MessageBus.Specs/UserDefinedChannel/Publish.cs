@@ -101,11 +101,9 @@ class publishing_context : user_defined_channel_context
                 .Select(message => Task.Factory.StartNew(() => bus.Publish(message, user_defined_channel)));
         };
 
-        Because of = () => aggregated_publishing = () => Task.WhenAll(publishings);
+        Because of = () => aggregated_publishing = () => Task.WaitAll(publishings.ToArray());
 
-        It should_succeed =
-            // ReSharper disable once AsyncVoidLambda
-            async () => await aggregated_publishing.Should().NotThrowAsync();
+        It should_succeed = () => aggregated_publishing.Should().NotThrow();
 
         It should_all_messages_be_pending_since_there_is_no_subscriber =
             () => bus.CountPending(user_defined_channel).Should().Be(message_count);
@@ -114,6 +112,6 @@ class publishing_context : user_defined_channel_context
 
         static int message_count;
         static IEnumerable<Task> publishings;
-        static Func<Task> aggregated_publishing;
+        static Action aggregated_publishing;
     }
 }

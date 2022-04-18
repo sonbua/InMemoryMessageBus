@@ -175,11 +175,9 @@ class unsubscription_context : user_defined_channel_context
                 name => Task.Factory.StartNew(() => bus.Unsubscribe(name, user_defined_channel)));
         };
 
-        Because of = () => aggregated_unsubscription = () => Task.WhenAll(unsubscriptions);
+        Because of = () => aggregated_unsubscription = () => Task.WaitAll(unsubscriptions.ToArray());
 
-        It should_succeed =
-            // ReSharper disable once AsyncVoidLambda
-            async () => await aggregated_unsubscription.Should().NotThrowAsync();
+        It should_succeed = () => aggregated_unsubscription.Should().NotThrow();
 
         It should_there_be_no_subscriber_to_handle_a_message_published_to_it = () =>
         {
@@ -191,6 +189,6 @@ class unsubscription_context : user_defined_channel_context
         };
 
         static IEnumerable<Task> unsubscriptions;
-        static Func<Task> aggregated_unsubscription;
+        static Action aggregated_unsubscription;
     }
 }
