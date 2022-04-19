@@ -23,7 +23,7 @@ class synchronously_blocking_context : bus_context
         Because of = () => stopwatch = RecordTime(subscription);
 
         It should_not_synchronously_block =
-            () => stopwatch.Elapsed.Should().BeLessThan(TimeSpan.FromMilliseconds(5));
+            () => stopwatch.Elapsed.Should().BeLessThan(TimeSpan.FromMilliseconds(10));
 
         static Stopwatch stopwatch;
         static Action subscription;

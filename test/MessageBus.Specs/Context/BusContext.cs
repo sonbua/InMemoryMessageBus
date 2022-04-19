@@ -23,5 +23,5 @@ class bus_context
     /// <summary>
     /// Specifies maximal delay of publishing and subscription operation in milliseconds.
     /// </summary>
-    protected const int pub_sub_max_delay = 1;
+    protected const int pub_sub_max_delay = 3;
 }
