@@ -1,3 +1,51 @@
 <Project>
-  <Import Project="build\all.props" />
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <LangVersion>10</LangVersion>
+    <IsPackable>false</IsPackable>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+  </PropertyGroup>
+
+
+  <!-- Variables -->
+  <PropertyGroup>
+    <IsSpecProject Condition="$(MSBuildProjectName.EndsWith('Specs'))">true</IsSpecProject>
+    <IsTestProject Condition="$(MSBuildProjectName.EndsWith('Tests')) OR '$(IsSpecProject)' == 'true' ">true</IsTestProject>
+  </PropertyGroup>
+
+
+  <!-- Source projects -->
+  <PropertyGroup Condition=" '$(IsTestProject)' != 'true' ">
+    <Nullable>enable</Nullable>
+
+    <AnalysisMode>All</AnalysisMode>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+
+
+  <!-- Test projects -->
+  <PropertyGroup Condition=" '$(IsTestProject)' == 'true' ">
+    <Nullable>disable</Nullable>
+
+    <AnalysisMode>Recommended</AnalysisMode>
+    <AnalysisLevel>latest</AnalysisLevel>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(IsTestProject)' == 'true' ">
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="FluentAssertions.Analyzers" />
+    <PackageReference Include="Machine.Specifications" />
+    <PackageReference Include="Machine.Specifications.Runner.VisualStudio" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  </ItemGroup>
+
+
+  <!-- Output path -->
+  <PropertyGroup Label="Prefer RAM disk as output path if available" Condition="Exists('R:\dotnet-build')">
+    <SolutionBuildDir>R:\dotnet-build\$(SolutionName)</SolutionBuildDir>
+    <ProjectBuildDir>$(SolutionBuildDir)\$(MSBuildProjectName)</ProjectBuildDir>
+
+    <BaseOutputPath>$(ProjectBuildDir)\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(ProjectBuildDir)\obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
 </Project>

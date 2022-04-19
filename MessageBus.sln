@@ -10,14 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "global", "global", "{B7163D
 		global.json = global.json
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{7214F191-A5F7-447F-BFA1-9571DAF3136B}"
-	ProjectSection(SolutionItems) = preProject
-		build\all.props = build\all.props
-		build\dependencies.props = build\dependencies.props
-		build\src.props = build\src.props
-		build\test.props = build\test.props
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{47B6AEE6-32AC-4CF6-891B-C9D47A95F391}"
 	ProjectSection(SolutionItems) = preProject
 		src\.editorconfig = src\.editorconfig
