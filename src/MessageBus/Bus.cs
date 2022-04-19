@@ -28,7 +28,7 @@ public class Bus : IDisposable
     {
         EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
-        return GetChannel(channelName).MessageQueue.Count;
+        return GetChannel(channelName).Count();
     }
 
     public void Publish(object message) => Publish(message, _defaultChannel);
@@ -38,7 +38,7 @@ public class Bus : IDisposable
         EnsureArg.IsNotNull(message, nameof(message));
         EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
-        GetChannel(channelName).MessageQueue.TryAdd(message);
+        GetChannel(channelName).Publish(message);
     }
 
     public void Subscribe(Subscriber subscriber) => Subscribe(subscriber, _defaultChannel);
@@ -47,16 +47,7 @@ public class Bus : IDisposable
     {
         EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
-        var (_, subscriptions, manualResetEvent) = GetChannel(channelName);
-
-        // Modification of subscriptions and manualResetEvent should be an atomic operation
-        lock (subscriptions)
-        {
-            if (subscriptions.TryAdd(subscriber.Name, subscriber))
-            {
-                manualResetEvent.Set();
-            }
-        }
+        GetChannel(channelName).Subscribe(subscriber);
     }
 
     public void Unsubscribe(string subscriberName) => Unsubscribe(subscriberName, _defaultChannel);
@@ -66,69 +57,8 @@ public class Bus : IDisposable
         EnsureArg.IsNotNullOrWhiteSpace(subscriberName, nameof(subscriberName));
         EnsureArg.IsNotNullOrWhiteSpace(channelName, nameof(channelName));
 
-        var (_, subscriptions, manualResetEvent) = GetChannel(channelName);
-
-        // Modification of subscriptions and manualResetEvent should be an atomic operation
-        lock (subscriptions)
-        {
-            if (subscriptions.TryRemove(subscriberName, out _) &&
-                subscriptions.IsEmpty)
-            {
-                manualResetEvent.Reset();
-            }
-        }
+        GetChannel(channelName).Unsubscribe(subscriberName);
     }
-
-    private Channel GetChannel(string channelName) =>
-        _channelRouter.GetOrAdd(
-            channelName,
-            _ =>
-            {
-                var channel = new Channel(
-                    new BlockingCollection<object>(),
-                    new ConcurrentDictionary<string, Subscriber>(),
-                    new ManualResetEventSlim());
-
-                Task.Factory.StartNew(
-                    action: c =>
-                    {
-                        Debug.Assert(c is Channel);
-
-                        var (queue, subscriptions, manualResetEvent) = (Channel)c;
-
-                        manualResetEvent.Wait();
-
-                        foreach (var message in queue.GetConsumingEnumerable())
-                        {
-                            if (subscriptions.IsEmpty)
-                            {
-                                queue.TryAdd(message);
-                                manualResetEvent.Wait();
-                            }
-
-                            foreach (var (_, subscriber) in subscriptions)
-                            {
-                                try
-                                {
-                                    subscriber.MessageHandler(message);
-                                }
-// Ensures exception from a subscriber won't affect next subscriber to receive the message.
-#pragma warning disable CA1031
-                                catch
-#pragma warning restore CA1031
-                                {
-                                    // ignored
-                                }
-                            }
-                        }
-                    },
-                    state: channel,
-                    CancellationToken.None,
-                    TaskCreationOptions.LongRunning,
-                    TaskScheduler.Default);
-
-                return channel;
-            });
 
     protected virtual void Dispose(bool disposing)
     {
@@ -147,11 +77,96 @@ public class Bus : IDisposable
         GC.SuppressFinalize(this);
     }
 
+    private Channel GetChannel(string channelName) =>
+        _channelRouter.GetOrAdd(
+            channelName,
+            _ => new Channel(
+                    MessageQueue: new BlockingCollection<object>(),
+                    Subscriptions: new ConcurrentDictionary<string, Subscriber>(),
+                    ManualResetEvent: new ManualResetEventSlim())
+                .Initialize());
+
     private record Channel(
         BlockingCollection<object> MessageQueue,
         ConcurrentDictionary<string, Subscriber> Subscriptions,
         ManualResetEventSlim ManualResetEvent) : IDisposable
     {
+        private BlockingCollection<object> MessageQueue { get; } = MessageQueue;
+        private ConcurrentDictionary<string, Subscriber> Subscriptions { get; } = Subscriptions;
+        private ManualResetEventSlim ManualResetEvent { get; } = ManualResetEvent;
+
+        public Channel Initialize()
+        {
+            Task.Factory.StartNew(
+                action: c =>
+                {
+                    Debug.Assert(c is Channel);
+
+                    var (queue, subscriptions, manualResetEvent) = (Channel)c;
+
+                    manualResetEvent.Wait();
+
+                    foreach (var message in queue.GetConsumingEnumerable())
+                    {
+                        if (subscriptions.IsEmpty)
+                        {
+                            queue.TryAdd(message);
+                            manualResetEvent.Wait();
+                        }
+
+                        foreach (var (_, subscriber) in subscriptions)
+                        {
+                            try
+                            {
+                                subscriber.MessageHandler(message);
+                            }
+// Ensures exception from a subscriber won't affect next subscriber to receive the message.
+#pragma warning disable CA1031
+                            catch
+#pragma warning restore CA1031
+                            {
+                                // ignored
+                            }
+                        }
+                    }
+                },
+                state: this,
+                CancellationToken.None,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
+
+            return this;
+        }
+
+        public long Count() => MessageQueue.Count;
+
+        public void Publish(object message) => MessageQueue.TryAdd(message);
+
+        public void Subscribe(Subscriber subscriber)
+        {
+            // Modification of subscriptions and manualResetEvent should be an atomic operation
+            lock (Subscriptions)
+            {
+                if (Subscriptions.TryAdd(subscriber.Name, subscriber))
+                {
+                    ManualResetEvent.Set();
+                }
+            }
+        }
+
+        public void Unsubscribe(string subscriberName)
+        {
+            // Modification of subscriptions and manualResetEvent should be an atomic operation
+            lock (Subscriptions)
+            {
+                if (Subscriptions.TryRemove(subscriberName, out _) &&
+                    Subscriptions.IsEmpty)
+                {
+                    ManualResetEvent.Reset();
+                }
+            }
+        }
+
         public void Dispose()
         {
             MessageQueue.Dispose();
